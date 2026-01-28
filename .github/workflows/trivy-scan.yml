@@ -10,14 +10,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
 
       - name: Install Trivy
         run: | 
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
           trivy --version
-
 
       - name: Create reports directory
         run: mkdir -p trivy-reports
@@ -63,14 +60,3 @@ jobs:
         with:
           name: trivy-scan-results
           path: trivy-reports/
-
-      - name: Push scan results
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add trivy-reports/*
-          git commit -m "Add Trivy scan reports [ci skip]" || echo "No changes to commit."
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
