@@ -1,0 +1,65 @@
+name: Trivy Docker Scan with JSON and TXT Reports
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.49.1_Linux-64bit.deb
+          sudo dpkg -i trivy_0.49.1_Linux-64bit.deb
+
+      - name: Create reports directory
+        run: mkdir -p trivy-reports
+
+      - name: Scan juice-shop (JSON)
+        run: |
+          trivy image \
+            --config /dev/null \
+            --scanners vuln \
+            --format json \
+            --output trivy-reports/juice-shop.json \
+            bkimminich/juice-shop
+
+      - name: Scan juice-shop (TXT)
+        run: |
+          trivy image \
+            --config /dev/null \
+            --scanners vuln \
+            --format table \
+            --output trivy-reports/juice-shop.txt \
+            bkimminich/juice-shop
+
+      - name: Scan webgoat (JSON)
+        run: |
+          trivy image \
+            --config /dev/null \
+            --scanners vuln \
+            --format json \
+            --output trivy-reports/webgoat.json \
+            webgoat/webgoat
+
+      - name: Scan webgoat (TXT)
+        run: |
+          trivy image \
+            --config /dev/null \
+            --scanners vuln \
+            --format table \
+            --output trivy-reports/webgoat.txt \
+            webgoat/webgoat
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-scan-results
+          path: trivy-reports/
+
